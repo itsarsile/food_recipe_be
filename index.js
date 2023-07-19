@@ -8,7 +8,7 @@ const helmet = require('helmet')
 const xss = require('xss-clean')
 const createError = require('http-errors')
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 5000
 
 const app = express()
 
