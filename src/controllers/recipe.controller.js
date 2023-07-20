@@ -1,20 +1,57 @@
 const { supabase } = require('../config/db')
 const commonHelper = require('../helper/common')
 
-const PAGE_SIZE = 10 // Number of records to retrieve per page
+const DEFAULT_PAGE_SIZE = 10
 
 const recipeController = {
+  createRecipe: async (req, res) => {
+    try {
+      const { title, details, photo, video, userid } = req.body
+      const { data, error } = await supabase
+        .from('recipes')
+        .insert({ title, details, photo, video, userid })
+      console.log(error)
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      commonHelper.response(res, data, 201, 'Recipe created successfully')
+    } catch (error) {
+      commonHelper.response(res, null, 500, 'Error creating recipe')
+    }
+  },
+  updateRecipe: async (req, res) => {
+    try {
+      const { recipeId } = req.params
+      const { title, details, photo, video } = req.body
+      const { data, error } = await supabase
+        .from('recipes')
+        .update({ title, details, photo, video })
+        .eq('id', recipeId)
+
+      if (error) {
+        commonHelper.response(res, error, 200, 'Update recipe failed')
+      }
+
+      commonHelper.response(res, data, 200, 'Recipe updated successfully')
+    } catch (error) {
+      commonHelper.response(res, null, 500, 'Error updating recipe')
+    }
+  },
   getAllRecipes: async (req, res) => {
     try {
-      const { page } = req.query
-      const currentPage = parseInt(page, 10) || 1 // Current page number
-      const start = (currentPage - 1) * PAGE_SIZE
-      const end = start + PAGE_SIZE - 1
+      const { page, limit } = req.query
+      const currentPage = parseInt(page, 10) || 1
+      const pageSize = parseInt(limit, 10) || DEFAULT_PAGE_SIZE
+      const start = (currentPage - 1) * pageSize
+      const end = start + pageSize - 1
 
       const { data, error } = await supabase
         .from('recipes')
-        .select('*')
+        .select('\'*\'')
         .range(start, end)
+
+      console.log(error)
       if (error) {
         throw new Error(error.message)
       }
@@ -29,7 +66,7 @@ const recipeController = {
 
       const totalRecords = count
 
-      const totalPages = Math.ceil(totalRecords / PAGE_SIZE)
+      const totalPages = Math.ceil(totalRecords / pageSize)
 
       const pagination = {
         currentPage,
@@ -40,6 +77,36 @@ const recipeController = {
       commonHelper.response(res, data, 200, 'Success getting all recipes', pagination)
     } catch (error) {
       commonHelper.response(res, null, 500, 'Error retrieving all recipes')
+    }
+  },
+  getRecipesById: async (req, res) => {
+    try {
+      const { recipeId } = req.params
+      const { data: recipeData, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('id', recipeId)
+
+      console.log(recipeData[0].userid)
+      if (error) {
+        commonHelper.response(res, error, 404, 'Recipes not found')
+      }
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', recipeData[0].userid)
+
+      console.log(userData)
+
+      const data = {
+        recipeData,
+        userData
+      }
+
+      commonHelper.response(res, data, 200, 'Success getting recipe')
+    } catch (error) {
+      commonHelper.response(res, error, 500, 'Error getting recipe')
     }
   }
 }

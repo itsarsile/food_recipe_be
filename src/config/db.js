@@ -2,8 +2,6 @@
 const { Pool } = require('pg')
 const { createClient } = require('@supabase/supabase-js')
 
-console.log(process.env.SUPABASE_URL)
-
 const pool = new Pool({
   user: process.env.PGUSERNAME,
   host: process.env.PGHOST,
