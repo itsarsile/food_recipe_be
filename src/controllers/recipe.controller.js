@@ -10,11 +10,10 @@ const recipeController = {
       const { data, error } = await supabase
         .from('recipes')
         .insert({ title, details, photo, video, userid })
-      console.log(error)
       if (error) {
         throw new Error(error.message)
       }
-
+      
       commonHelper.response(res, data, 201, 'Recipe created successfully')
     } catch (error) {
       commonHelper.response(res, null, 500, 'Error creating recipe')
