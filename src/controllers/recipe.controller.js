@@ -29,7 +29,7 @@ const recipeController = {
         .eq('id', recipeId)
 
       if (error) {
-        commonHelper.response(res, error, 200, 'Update recipe failed')
+        return commonHelper.response(res, error, 200, 'Update recipe failed')
       }
 
       commonHelper.response(res, data, 200, 'Recipe updated successfully')
@@ -50,7 +50,6 @@ const recipeController = {
         .select('\'*\'')
         .range(start, end)
 
-      console.log(error)
       if (error) {
         throw new Error(error.message)
       }
@@ -87,7 +86,7 @@ const recipeController = {
         .eq('id', recipeId)
 
       if (recipeError) {
-        commonHelper.response(res, recipeError.message, 404, 'Recipes not found')
+        return commonHelper.response(res, recipeError.message, 404, 'Recipes not found')
       }
 
       const { data: userData, error: userError } = await supabase
@@ -96,7 +95,7 @@ const recipeController = {
         .eq('id', recipeData[0].userid)
 
       if (userError) {
-        commonHelper.response(res, userError.message, 404, 'Recipes not found')
+        return commonHelper.response(res, userError.message, 404, 'Recipes not found')
       }
 
       const data = {
