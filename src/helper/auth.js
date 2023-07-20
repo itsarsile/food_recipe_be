@@ -1,13 +1,34 @@
-const { supabase } = require('../config/db')
+const { supabase } = require("../config/db");
+
+const jwt = require("jsonwebtoken");
+
+// console.log(process.env.SECRET_KEY_JWT);
+
+const generateToken = (payload) => {
+  const verifyOpts = {
+    expiresIn: "1h",
+    issuer: "tokoku",
+  };
+  const token = jwt.sign(payload, process.env.SECRET_KEY_JWT, verifyOpts);
+  return token;
+};
+
+const refreshToken = (payload) => {
+  const verifyOpts = {
+    expiresIn: "1day",
+    issuer: "tokoku",
+  };
+  const token = jwt.sign(payload, process.env.SECRET_KEY_JWT, verifyOpts);
+  return token;
+};
 
 const findEmail = async (email) => {
-    try {
-      const { data, error } = await supabase.from('users').select('*').eq('email', email).single()
-      return data
-    } catch (error) {
-      console.error('Error finding email:', error.message)
-      return null
-    }
-  }
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .single();
+  return data;
+};
 
-module.exports = {findEmail}
+module.exports = { findEmail, generateToken, refreshToken };
