@@ -1,7 +1,7 @@
 const Pool = require('../config/db')
 
 const getAllRecipes = () => {
-  return Pool.query('SELECT * FROM recipes;')
+  return Pool.query('SELECT * FROM recipes')
 }
 
 const getRecipesById = (recipesId) => {
