@@ -82,14 +82,13 @@ const recipeController = {
   getRecipesById: async (req, res) => {
     try {
       const { recipeId } = req.params
-      const { data: recipeData, error } = await supabase
+      const { data: recipeData, error: recipeError } = await supabase
         .from('recipes')
         .select('*')
         .eq('id', recipeId)
 
-      console.log(recipeData[0].userid)
-      if (error) {
-        commonHelper.response(res, error, 404, 'Recipes not found')
+      if (recipeError) {
+        commonHelper.response(res, recipeError.message, 404, 'Recipes not found')
       }
 
       const { data: userData, error: userError } = await supabase
@@ -97,7 +96,9 @@ const recipeController = {
         .select('name')
         .eq('id', recipeData[0].userid)
 
-      console.log(userData)
+      if (userError) {
+        commonHelper.response(res, userError.message, 404, 'Recipes not found')
+      }
 
       const data = {
         recipeData,
