@@ -19,6 +19,8 @@ app.use(cors())
 app.use(helmet())
 app.use(xss())
 
+app.use(express.static(__dirname + '/public'))
+app.use('/uploads', express.static('uploads'))
 app.use('/', mainRouter)
 app.all('*', (req, res, next) => {
   next(new createError.NotFound())
