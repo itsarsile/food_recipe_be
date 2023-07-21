@@ -1,5 +1,6 @@
 const fs = require('fs')
 const multer = require('multer')
+const path = require('path')
 const cloudinary = require('cloudinary').v2
 
 // Create a new uploads directory if it doesn't exist
@@ -16,7 +17,7 @@ cloudinary.config({
 // Setup Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '../uploads')
+    cb(null, './uploads')
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname)
@@ -27,7 +28,13 @@ const upload = multer({ storage })
 
 async function uploadToCloudinary (localFilePath) {
   try {
-    const result = await cloudinary.uploader.upload(localFilePath, { folder: 'main' })
+    const options = { folder: 'main' }
+    if (path.extname(localFilePath) === '.mp4') {
+      options.resource_type = 'video'
+      console.log(options)
+    }
+
+    const result = await cloudinary.uploader.upload(localFilePath, options)
     fs.unlinkSync(localFilePath)
     return {
       message: 'success',
