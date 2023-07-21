@@ -7,8 +7,14 @@ router
   .get('/', recipeController.getAllRecipes)
   .get('/:recipeId', recipeController.getRecipesById)
   .post('/',
-    upload.single('recipeImage'),
+    upload.fields([
+      { name: 'recipeImage', maxCount: 1 },
+      { name: 'recipeVideo', maxCount: 1 }
+    ]),
     recipeController.createRecipe)
-  .put('/:recipeId', recipeController.updateRecipe)
+  .put('/:recipeId', upload.fields([
+    { name: 'recipeImage', maxCount: 1 },
+    { name: 'recipeVideo', maxCount: 1 }
+  ]), recipeController.updateRecipe)
 
 module.exports = router

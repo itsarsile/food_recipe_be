@@ -7,16 +7,30 @@ const DEFAULT_PAGE_SIZE = 10
 const recipeController = {
   createRecipe: async (req, res) => {
     try {
-      const { title, details, video, userid } = req.body
-      const imageUrl = await uploadToCloudinary(req.file.path)
-      const { data, error } = await supabase
+      const { title, details, userid } = req.body
+      console.log(req.files.recipeVideo[0].path, req.files.recipeImage[0].path)
+
+      const imageUrlResponse = await uploadToCloudinary(req.files.recipeImage[0].path)
+      const videoUrlResponse = await uploadToCloudinary(req.files.recipeVideo[0].path)
+
+      const imageUrl = imageUrlResponse.url
+      const videoUrl = videoUrlResponse.url
+
+      const { error } = await supabase
         .from('recipes')
-        .insert({ title, details, photo: imageUrl.url, video, userid })
+        .insert({ title, details, photo: imageUrl, video: videoUrl, userid })
       if (error) {
         throw new Error(error.message)
       }
 
-      commonHelper.response(res, data, 201, 'Recipe created successfully')
+      const recipeData = {
+        title,
+        details,
+        image: imageUrl,
+        video: videoUrl
+      }
+
+      commonHelper.response(res, recipeData, 201, 'Recipe created successfully')
     } catch (error) {
       commonHelper.response(res, null, 500, 'Error creating recipe')
     }
@@ -24,19 +38,66 @@ const recipeController = {
   updateRecipe: async (req, res) => {
     try {
       const { recipeId } = req.params
-      const { title, details, photo, video } = req.body
-      const { data, error } = await supabase
+      const { title, details, userid } = req.body
+
+      // Check if the recipe exists in the database
+      const { data: existingRecipe, error: existingRecipeError } = await supabase
         .from('recipes')
-        .update({ title, details, photo, video })
+        .select('*')
+        .eq('id', recipeId)
+
+      if (existingRecipeError) {
+        return commonHelper.response(res, existingRecipeError.message, 404, 'Recipe not found')
+      }
+
+      if (!existingRecipe || existingRecipe.length === 0) {
+        return commonHelper.response(res, null, 404, 'Recipe not found')
+      }
+
+      // Handle video and image updates similar to createRecipe
+      let imageUrl = existingRecipe[0].photo // Keep the existing image URL if not updated
+      let videoUrl = existingRecipe[0].video // Keep the existing video URL if not updated
+
+      if (req.files) {
+        if (req.files.recipeImage) {
+          const imageUrlResponse = await uploadToCloudinary(req.files.recipeImage[0].path)
+          imageUrl = imageUrlResponse.url
+        }
+
+        if (req.files.recipeVideo) {
+          const videoUrlResponse = await uploadToCloudinary(req.files.recipeVideo[0].path)
+          videoUrl = videoUrlResponse.url
+        }
+      }
+
+      // Update the recipe with the provided data and new video/image URLs
+      const { error } = await supabase
+        .from('recipes')
+        .update({ title, details, photo: imageUrl, video: videoUrl, userid })
         .eq('id', recipeId)
 
       if (error) {
-        return commonHelper.response(res, error, 200, 'Update recipe failed')
+        return commonHelper.response(res, error, 500, 'Error updating recipe')
+      }
+
+      // Fetch the updated recipe from the database
+      const { data: updatedRecipe, error: updatedRecipeError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('id', recipeId)
+
+      if (updatedRecipeError) {
+        return commonHelper.response(res, updatedRecipeError.message, 500, 'Error getting updated recipe')
+      }
+
+      const data = {
+        recipeData: updatedRecipe[0], // Since we queried by ID, we only expect one recipe
+        userData: null // Since we are not updating the user data, set it to null
       }
 
       commonHelper.response(res, data, 200, 'Recipe updated successfully')
     } catch (error) {
-      commonHelper.response(res, null, 500, 'Error updating recipe')
+      commonHelper.response(res, error, 500, 'Error updating recipe')
     }
   },
   getAllRecipes: async (req, res) => {
