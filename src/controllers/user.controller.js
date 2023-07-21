@@ -1,62 +1,85 @@
-const { createUser, findUser, updateUser } = require('../models/user.models')
+const Joi = require('joi');
 const { supabase } = require('../config/db')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const authHelper = require('../helper/auth')
 const commonHelper = require('../helper/common')
 
+const userSchema = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string().email().required(),
+  photo: Joi.string().optional(),
+  phone: Joi.string().optional(),
+  password: Joi.string().min(6).required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
+
 const userController = {
   registerUser: async (req, res) => {
     try {
-      const { name, email, photo, phone, password } = req.body
-      // const photo = req.file.filename;
-      const passwordHash = bcrypt.hashSync(password)
-      const { data, error } = await supabase
-        .from('users')
-        .insert({ name, email, photo, phone, password: passwordHash })
+      const { error, value } = userSchema.validate(req.body);
+
       if (error) {
-        commonHelper.response(res, data, 201, 'Users created successfully!')
+        return commonHelper.response(res, null, 400, error.details[0].message);
       }
 
-      commonHelper.response(res, data, 201, 'Users created successfully!')
-      // await createUser(data)
-      //   .then((result) =>
-      //     commonHelper.response(res, result.rows, 201, "created")
-      //   )
-      //   .catch((err) => res.send(err));
+      const { name, email, photo, phone, password } = value;
+      const passwordHash = bcrypt.hashSync(password);
+      
+      const { data, error: insertError } = await supabase
+        .from('users')
+        .insert({ name, email, photo, phone, password: passwordHash });
+
+      if (insertError) {
+        return commonHelper.response(res, null, 500, 'Error creating users!');
+      }
+
+      commonHelper.response(res, data, 201, 'User created successfully!');
     } catch (error) {
-      console.log(error.message)
-      commonHelper.response(res, error, 500, 'Error creating users!')
+      console.error('Error creating user:', error);
+      commonHelper.response(res, null, 500, 'Error creating users!');
     }
   },
   loginUser: async (req, res) => {
-    const { email, password } = req.body
+    try {
+      const { error, value } = loginSchema.validate(req.body);
 
-    // Find user email
-    const user = await authHelper.findEmail(email)
+      if (error) {
+        return commonHelper.response(res, null, 400, error.details[0].message);
+      }
 
-    console.log(user)
+      const { email, password } = value;
 
-    if (!user) {
-      return commonHelper.response(res, null, 404, "Email doesn't exist")
+      const user = await authHelper.findEmail(email);
+
+      if (!user) {
+        return commonHelper.response(res, null, 404, "Email doesn't exist");
+      }
+
+      const isValidPassword = bcrypt.compareSync(password, user.password);
+      if (!isValidPassword) {
+        return commonHelper.response(res, null, 404, 'Incorrect password!');
+      }
+      delete user.password;
+      const payload = {
+        email: user.email,
+        password: user.password,
+      };
+      user.token = authHelper.generateToken(payload);
+      user.refreshToken = authHelper.refreshToken(payload);
+
+      commonHelper.response(res, { user }, 201, 'login is successful', null, {
+        accessToken: user.token,
+        refreshToken: user.refreshToken,
+      });
+    } catch (error) {
+      console.error('Error logging in user:', error);
+      commonHelper.response(res, null, 500, 'Error logging in user!');
     }
-
-    const isValidPassword = bcrypt.compareSync(password, user.password)
-    if (!isValidPassword) {
-      return commonHelper.response(res, null, 404, 'Incorrect password!')
-    }
-    delete user.password
-    const payload = {
-      email: user.email,
-      password: user.password
-    }
-    user.token = authHelper.generateToken(payload)
-    user.refreshToken = authHelper.refreshToken(payload)
-
-    commonHelper.response(res, { user }, 201, 'login is successful', null, {
-      accessToken: user.token,
-      refreshToken: user.refreshToken
-    })
   },
   getAllUsers: async (req, res) => {
     try {
@@ -67,38 +90,31 @@ const userController = {
       if (error) {
         throw new Error(error.message);
       }
-  
+
       commonHelper.response(res, data, 200, 'Successfully fetched all users');
     } catch (error) {
       console.error('Error fetching all users:', error);
-      commonHelper.response(res, { message: 'An error occurred while fetching all users' }, 500);
+      commonHelper.response(res, null, { message: 'An error occurred while fetching all users' }, 500);
     }
   },
   profileUser: async (req, res) => {
-    const id = req.payload.id;
-
     try {
-    // const user = await authHelper.findEmail(email)
-      const { data, error } = await supabase
+      const { userId } = req.params;
+  
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', id)
+        .eq('id', userId)
         .single();
 
-      if (error) {
-        throw new Error(error.message);
+      if (userError || !userData) {
+        return commonHelper.response(res, null, 404, 'User not found');
       }
 
-      if (!user) {
-        return commonHelper.response(res, { message: 'User not found' }, 404);
-      }
-
-      delete data.password;
-
-      commonHelper.response(res, data, 200);
+      commonHelper.response(res, userData, 200, 'Successfully fetched user');
     } catch (error) {
-      console.error('Error fetching user:', error);
-      commonHelper.response(res, { message: 'An error occurred while fetching user data' }, 500);
+      console.error('Error getting user:', error);
+      commonHelper.response(res, { message: 'An error occurred while getting user data' }, 500);
     }
   },
   refreshToken: (req, res) => {
