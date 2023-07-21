@@ -4,8 +4,8 @@ const path = require('path')
 const cloudinary = require('cloudinary').v2
 
 // Create a new uploads directory if it doesn't exist
-if (!fs.existsSync('../uploads')) {
-  fs.mkdirSync('../uploads')
+if (!fs.existsSync('./uploads')) {
+  fs.mkdirSync('./uploads')
 }
 
 cloudinary.config({
