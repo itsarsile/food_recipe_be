@@ -1,19 +1,21 @@
 const { supabase } = require('../config/db')
 const commonHelper = require('../helper/common')
+const { uploadToCloudinary } = require('../middleware/upload')
 
 const DEFAULT_PAGE_SIZE = 10
 
 const recipeController = {
   createRecipe: async (req, res) => {
     try {
-      const { title, details, photo, video, userid } = req.body
+      const { title, details, video, userid } = req.body
+      const imageUrl = await uploadToCloudinary(req.file.path)
       const { data, error } = await supabase
         .from('recipes')
-        .insert({ title, details, photo, video, userid })
+        .insert({ title, details, photo: imageUrl.url, video, userid })
       if (error) {
         throw new Error(error.message)
       }
-      
+
       commonHelper.response(res, data, 201, 'Recipe created successfully')
     } catch (error) {
       commonHelper.response(res, null, 500, 'Error creating recipe')
