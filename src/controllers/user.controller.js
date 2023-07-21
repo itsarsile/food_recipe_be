@@ -102,8 +102,6 @@ const userController = {
   profileUser: async (req, res) => {
     try {
       const { id } = req.params;
-
-      console.log(id)
   
       const { data: userData, error: userError } = await supabase
         .from('users')
