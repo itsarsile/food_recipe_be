@@ -86,6 +86,8 @@ const userController = {
       const { data, error } = await supabase
         .from('users')
         .select('*');
+
+      delete data.password
   
       if (error) {
         throw new Error(error.message);
@@ -99,13 +101,17 @@ const userController = {
   },
   profileUser: async (req, res) => {
     try {
-      const { userId } = req.params;
+      const { id } = req.params;
+
+      console.log(id)
   
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', userId)
+        .eq('id', id)
         .single();
+
+      delete userData.password;
 
       if (userError || !userData) {
         return commonHelper.response(res, null, 404, 'User not found');
