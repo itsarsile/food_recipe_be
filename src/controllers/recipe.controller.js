@@ -7,11 +7,12 @@ const DEFAULT_PAGE_SIZE = 10
 const recipeController = {
   createRecipe: async (req, res) => {
     try {
-      const { title, details, video, userid } = req.body
+      const { title, details, userid } = req.body
       const imageUrl = await uploadToCloudinary(req.file.path)
+      const videoUrl = await uploadToCloudinary(req.file.path)
       const { data, error } = await supabase
         .from('recipes')
-        .insert({ title, details, photo: imageUrl.url, video, userid })
+        .insert({ title, details, photo: imageUrl.url, video: videoUrl.url, userid })
       if (error) {
         throw new Error(error.message)
       }
