@@ -35,6 +35,8 @@ const userController = {
     // Find user email
     const user = await authHelper.findEmail(email)
 
+    console.log(user)
+
     if (!user) {
       return commonHelper.response(res, null, 404, "Email doesn't exist")
     }
@@ -56,13 +58,48 @@ const userController = {
       refreshToken: user.refreshToken
     })
   },
+  getAllUsers: async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*');
+  
+      if (error) {
+        throw new Error(error.message);
+      }
+  
+      commonHelper.response(res, data, 200, 'Successfully fetched all users');
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      commonHelper.response(res, { message: 'An error occurred while fetching all users' }, 500);
+    }
+  },
   profileUser: async (req, res) => {
-    const email = req.payload.email
-    const {
-      rows: [user]
-    } = await findUser(email)
-    delete user.password
-    commonHelper.response(res, user, 200)
+    const id = req.payload.id;
+
+    try {
+    // const user = await authHelper.findEmail(email)
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!user) {
+        return commonHelper.response(res, { message: 'User not found' }, 404);
+      }
+
+      delete data.password;
+
+      commonHelper.response(res, data, 200);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      commonHelper.response(res, { message: 'An error occurred while fetching user data' }, 500);
+    }
   },
   refreshToken: (req, res) => {
     const refreshToken = req.body.refreshToken
