@@ -17,4 +17,7 @@ router
     { name: 'recipeVideo', maxCount: 1 }
   ]), recipeController.updateRecipe)
 
+router
+  .get('/user/:userId', recipeController.getRecipesByUserId)
+
 module.exports = router
