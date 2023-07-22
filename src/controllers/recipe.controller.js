@@ -15,9 +15,9 @@ const recipeController = {
         .from('recipes')
         .insert({ title, details, photo: imageUrlResponse, video: videoUrlResponse, userid })
 
-      console.error(error.message)
+      console.error(error)
       if (error) {
-        throw new Error(error.message)
+        throw new Error(error)
       }
 
       const recipeData = {
