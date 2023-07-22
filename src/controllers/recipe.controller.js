@@ -8,30 +8,29 @@ const recipeController = {
   createRecipe: async (req, res) => {
     try {
       const { title, details, userid } = req.body
-      console.log(req.files.recipeVideo[0].path, req.files.recipeImage[0].path)
-
       const imageUrlResponse = await uploadToCloudinary(req.files.recipeImage[0].path)
       const videoUrlResponse = await uploadToCloudinary(req.files.recipeVideo[0].path)
 
-      const imageUrl = imageUrlResponse.url
-      const videoUrl = videoUrlResponse.url
-
       const { error } = await supabase
         .from('recipes')
-        .insert({ title, details, photo: imageUrl, video: videoUrl, userid })
+        .insert({ title, details, photo: imageUrlResponse, video: videoUrlResponse, userid })
+
+      console.error(error)
       if (error) {
-        throw new Error(error.message)
+        throw new Error(error)
       }
 
       const recipeData = {
         title,
         details,
-        image: imageUrl,
-        video: videoUrl
+        image: imageUrlResponse,
+        video: videoUrlResponse
       }
 
       commonHelper.response(res, recipeData, 201, 'Recipe created successfully')
     } catch (error) {
+      console.error(error.message)
+      console.error(error)
       commonHelper.response(res, null, 500, 'Error creating recipe')
     }
   },
@@ -169,6 +168,26 @@ const recipeController = {
       commonHelper.response(res, data, 200, 'Success getting recipe')
     } catch (error) {
       commonHelper.response(res, error, 500, 'Error getting recipe')
+    }
+  },
+  getRecipesByUserId: async (req, res) => {
+    try {
+      const { userId } = req.params
+
+      const { data: recipeData, error: recipeError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('userid', userId)
+
+      if (recipeError) {
+        return commonHelper.response(recipeError.hint, null, recipeError.code, recipeError.details)
+      }
+
+      const recipes = recipeData || []
+
+      commonHelper.response(res, recipes, 200, 'Success getting recipes by User ID')
+    } catch (error) {
+      commonHelper.response(res, error, 500, 'Error getting recipes by user ID')
     }
   }
 }
