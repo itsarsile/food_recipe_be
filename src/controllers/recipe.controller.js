@@ -169,6 +169,26 @@ const recipeController = {
     } catch (error) {
       commonHelper.response(res, error, 500, 'Error getting recipe')
     }
+  },
+  getRecipesByUserId: async (req, res) => {
+    try {
+      const { userId } = req.params
+
+      const { data: recipeData, error: recipeError } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('userid', userId)
+
+      if (recipeError) {
+        return commonHelper.response(recipeError.hint, null, recipeError.code, recipeError.details)
+      }
+
+      const recipes = recipeData || []
+
+      commonHelper.response(res, recipes, 200, 'Success getting recipes by User ID')
+    } catch (error) {
+      commonHelper.response(res, error, 500, 'Error getting recipes by user ID')
+    }
   }
 }
 
