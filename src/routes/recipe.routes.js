@@ -18,6 +18,7 @@ router
     { name: 'recipeImage', maxCount: 1 },
     { name: 'recipeVideo', maxCount: 1 }
   ]), recipeController.updateRecipe)
+  .delete('/:recipeId', recipeController.deleteRecipe)
 
 router
   .get('/user/:userId', recipeController.getRecipesByUserId)
