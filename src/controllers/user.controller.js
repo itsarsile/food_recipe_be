@@ -69,6 +69,7 @@ const userController = {
         email: user.email,
         password: user.password,
       };
+      console.log(payload)
       user.token = authHelper.generateToken(payload);
       user.refreshToken = authHelper.refreshToken(payload);
 
@@ -85,9 +86,7 @@ const userController = {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*');
-
-      delete data.password
+        .select('id, name, email, phone, photo');
   
       if (error) {
         throw new Error(error.message);
@@ -105,11 +104,9 @@ const userController = {
   
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('*')
+        .select('id, name, email, phone, photo')
         .eq('id', id)
         .single();
-
-      delete userData.password;
 
       if (userError || !userData) {
         return commonHelper.response(res, null, 404, 'User not found');
@@ -133,6 +130,28 @@ const userController = {
       refreshToken: authHelper.refreshToken(payload)
     }
     commonHelper.response(res, result, 200, 'Token already generate!')
+  },
+  deleteUserById: async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const { data: userData } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', id)
+        .single();
+  
+      if (!userData) {
+        return commonHelper.response(res, null, 404, 'User not found');
+      }
+  
+      // User was found and deleted successfully
+      const deletedUser = { ...userData, password: undefined };
+      commonHelper.response(res, deletedUser, 200, 'User deleted successfully');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      commonHelper.response(res, { message: 'An error occurred while deleting the user' }, 500);
+    }
   }
 }
 
