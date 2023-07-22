@@ -29,7 +29,7 @@ const userController = {
 
       const { name, email, photo, phone, password } = value;
       const passwordHash = bcrypt.hashSync(password);
-      
+
       const { data, error: insertError } = await supabase
         .from('users')
         .insert({ name, email, photo, phone, password: passwordHash });
@@ -64,12 +64,13 @@ const userController = {
       if (!isValidPassword) {
         return commonHelper.response(res, null, 404, 'Incorrect password!');
       }
+
       delete user.password;
       const payload = {
         email: user.email,
         password: user.password,
       };
-      console.log(payload)
+
       user.token = authHelper.generateToken(payload);
       user.refreshToken = authHelper.refreshToken(payload);
 
@@ -87,7 +88,7 @@ const userController = {
       const { data, error } = await supabase
         .from('users')
         .select('id, name, email, phone, photo');
-  
+
       if (error) {
         throw new Error(error.message);
       }
@@ -101,7 +102,7 @@ const userController = {
   profileUser: async (req, res) => {
     try {
       const { id } = req.params;
-  
+
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, name, email, phone, photo')
@@ -134,18 +135,27 @@ const userController = {
   deleteUserById: async (req, res) => {
     try {
       const { id } = req.params;
-  
-      const { data: userData } = await supabase
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, name, email, phone, photo')
+        .eq('id', id)
+
+      if (userError) {
+        throw new Error(userError.message)
+      }
+
+      if (!userData || userData.length === 0) {
+        return commonHelper.response(res, null, 404, 'User not found')
+      }
+      
+      const { error } = await supabase
         .from('users')
         .delete()
         .eq('id', id)
         .single();
-  
-      if (!userData) {
-        return commonHelper.response(res, null, 404, 'User not found');
-      }
-  
-      // User was found and deleted successfully
+
+
       const deletedUser = { ...userData, password: undefined };
       commonHelper.response(res, deletedUser, 200, 'User deleted successfully');
     } catch (error) {

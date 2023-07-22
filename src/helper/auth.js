@@ -1,8 +1,7 @@
 const { supabase } = require("../config/db");
+require('dotenv').config();
 
 const jwt = require("jsonwebtoken");
-
-// console.log(process.env.SECRET_KEY_JWT);
 
 const generateToken = (payload) => {
   const verifyOpts = {
