@@ -8,14 +8,14 @@ const recipeController = {
   createRecipe: async (req, res) => {
     try {
       const { title, details, userid } = req.body
-      console.log(req.files.recipeVideo[0].path, req.files.recipeImage[0].path)
-
       const imageUrlResponse = await uploadToCloudinary(req.files.recipeImage[0].path)
       const videoUrlResponse = await uploadToCloudinary(req.files.recipeVideo[0].path)
 
       const { error } = await supabase
         .from('recipes')
         .insert({ title, details, photo: imageUrlResponse, video: videoUrlResponse, userid })
+
+      console.error(error.message)
       if (error) {
         throw new Error(error.message)
       }
@@ -23,12 +23,14 @@ const recipeController = {
       const recipeData = {
         title,
         details,
-        image: imageUrl,
-        video: videoUrl
+        image: imageUrlResponse,
+        video: videoUrlResponse
       }
 
       commonHelper.response(res, recipeData, 201, 'Recipe created successfully')
     } catch (error) {
+      console.error(error.message)
+      console.error(error)
       commonHelper.response(res, null, 500, 'Error creating recipe')
     }
   },
