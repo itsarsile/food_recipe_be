@@ -13,12 +13,9 @@ const recipeController = {
       const imageUrlResponse = await uploadToCloudinary(req.files.recipeImage[0].path)
       const videoUrlResponse = await uploadToCloudinary(req.files.recipeVideo[0].path)
 
-      const imageUrl = imageUrlResponse.url
-      const videoUrl = videoUrlResponse.url
-
       const { error } = await supabase
         .from('recipes')
-        .insert({ title, details, photo: imageUrl, video: videoUrl, userid })
+        .insert({ title, details, photo: imageUrlResponse, video: videoUrlResponse, userid })
       if (error) {
         throw new Error(error.message)
       }
