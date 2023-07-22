@@ -31,12 +31,10 @@ async function uploadToCloudinary (localFilePath) {
     const options = { folder: 'main' }
     if (path.extname(localFilePath) === '.mp4') {
       options.resource_type = 'video'
-      console.log(options)
     }
 
     const result = await cloudinary.uploader.upload(localFilePath, options)
     fs.unlinkSync(localFilePath)
-    console.log(result.url)
     return result?.url
   } catch (error) {
     fs.unlinkSync(localFilePath)
