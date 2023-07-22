@@ -51,7 +51,6 @@ const recipeController = {
       const { recipeId } = req.params
       const { title, details, userid } = req.body
 
-      // Check if the recipe exists in the database
       const { data: existingRecipe, error: existingRecipeError } = await supabase
         .from('recipes')
         .select('*')
@@ -65,9 +64,8 @@ const recipeController = {
         return commonHelper.response(res, null, 404, 'Recipe not found')
       }
 
-      // Handle video and image updates similar to createRecipe
-      let imageUrl = existingRecipe[0].photo // Keep the existing image URL if not updated
-      let videoUrl = existingRecipe[0].video // Keep the existing video URL if not updated
+      let imageUrl = existingRecipe[0].photo
+      let videoUrl = existingRecipe[0].video
 
       if (req.files) {
         if (req.files.recipeImage) {
@@ -81,7 +79,6 @@ const recipeController = {
         }
       }
 
-      // Update the recipe with the provided data and new video/image URLs
       const { error } = await supabase
         .from('recipes')
         .update({ title, details, photo: imageUrl, video: videoUrl, userid })
@@ -102,8 +99,8 @@ const recipeController = {
       }
 
       const data = {
-        recipeData: updatedRecipe[0], // Since we queried by ID, we only expect one recipe
-        userData: null // Since we are not updating the user data, set it to null
+        recipeData: updatedRecipe[0],
+        userData: null
       }
 
       commonHelper.response(res, data, 200, 'Recipe updated successfully')
@@ -200,6 +197,37 @@ const recipeController = {
       commonHelper.response(res, recipes, 200, 'Success getting recipes by User ID')
     } catch (error) {
       commonHelper.response(res, error, 500, 'Error getting recipes by user ID')
+    }
+  },
+  deleteRecipe: async (req, res) => {
+    try {
+      const { recipeId } = req.params
+
+      const { data: existingRecipe, error: existingRecipeError } = await supabase
+        .from('recipes')
+        .select('id')
+        .eq('id', recipeId)
+
+      if (existingRecipeError) {
+        throw new Error(existingRecipeError.message)
+      }
+
+      if (!existingRecipe || existingRecipe.length === 0) {
+        return commonHelper.response(res, null, 404, 'Recipe not found')
+      }
+
+      const { error: deleteError } = await supabase
+        .from('recipes')
+        .delete()
+        .eq('id', recipeId)
+
+      if (deleteError) {
+        throw new Error(deleteError.message)
+      }
+
+      commonHelper.response(res, null, 200, 'Recipe deleted successfully')
+    } catch (error) {
+      commonHelper.response(res, error, 500, 'Error while deleting recipe')
     }
   }
 }
