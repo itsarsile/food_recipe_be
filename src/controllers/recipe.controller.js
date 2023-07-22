@@ -1,12 +1,24 @@
+const Joi = require('joi')
 const { supabase } = require('../config/db')
 const commonHelper = require('../helper/common')
 const { uploadToCloudinary } = require('../middleware/upload')
 
 const DEFAULT_PAGE_SIZE = 10
 
+const recipeSchema = Joi.object({
+  title: Joi.string().required(),
+  deatils: Joi.string().required(),
+  userid: Joi.string().required()
+})
+
 const recipeController = {
   createRecipe: async (req, res) => {
     try {
+      const { error: validationError } = recipeSchema.validate(req.body)
+
+      if (validationError) {
+        return commonHelper.response(res, null, 400, validationError.details[0].message)
+      }
       const { title, details, userid } = req.body
       const imageUrlResponse = await uploadToCloudinary(req.files.recipeImage[0].path)
       const videoUrlResponse = await uploadToCloudinary(req.files.recipeVideo[0].path)
@@ -153,7 +165,7 @@ const recipeController = {
 
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('name')
+        .select('name, photo')
         .eq('id', recipeData[0].userid)
 
       if (userError) {
