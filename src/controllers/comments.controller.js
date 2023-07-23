@@ -66,17 +66,40 @@ const commentsController = {
   getCommentFromUserId: async (req, res) => {
     try {
       const { recipeid } = req.params;
-
-      const { data, error } = await supabase
+  
+      // Fetch comments for the given recipeid
+      const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
         .select('*')
         .eq('recipeid', recipeid);
-
-      if (error) {
-        throw new Error(error.message);
+  
+      if (commentsError) {
+        throw new Error(commentsError.message);
       }
-
-      commonHelper.response(res, data, 200, 'Comments fetched successfully');
+  
+      const userIds = commentsData.map((comment) => comment.userid).filter(Boolean);
+      if (userIds.length === 0) {
+        return commonHelper.response(res, [], 200, 'No comments found for the given recipe');
+      }
+  
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, name, photo')
+        .in('id', userIds);
+  
+      if (userError) {
+        throw new Error(userError.message);
+      }
+  
+      const commentsWithUserData = commentsData.map((comment) => {
+        const user = userData.find((user) => user.id === comment.userid);
+        return {
+          ...comment,
+          user: user ? { name: user.name, photo: user.photo } : null,
+        };
+      });
+  
+      commonHelper.response(res, commentsWithUserData, 200, 'Comments fetched successfully');
     } catch (error) {
       console.error('Error fetching comments from user ID:', error);
       commonHelper.response(res, null, 500, 'Error fetching comments');
