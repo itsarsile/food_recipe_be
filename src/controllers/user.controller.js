@@ -28,12 +28,12 @@ const userController = {
         return commonHelper.response(res, null, 400, error.details[0].message);
       }
 
-      const { name, email, photo, phone, password } = value;
+      const { name, email, phone, password } = value;
       const passwordHash = bcrypt.hashSync(password);
 
       const { data, error: insertError } = await supabase
         .from('users')
-        .insert({ name, email, photo, phone, password: passwordHash });
+        .insert({ name, email, photo: 'https://res.cloudinary.com/dtffmntsf/image/upload/v1690129772/main/default.jpg', phone, password: passwordHash });
 
       if (insertError) {
         return commonHelper.response(res, null, 500, 'Error creating users!');
