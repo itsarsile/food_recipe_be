@@ -3,7 +3,8 @@ const { supabase } = require('../config/db')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const authHelper = require('../helper/auth')
-const commonHelper = require('../helper/common')
+const commonHelper = require('../helper/common');
+const { uploadToCloudinary } = require('../middleware/upload');
 
 const userSchema = Joi.object({
   name: Joi.string().required(),
@@ -117,6 +118,55 @@ const userController = {
     } catch (error) {
       console.error('Error getting user:', error);
       commonHelper.response(res, { message: 'An error occurred while getting user data' }, 500);
+    }
+  },
+  updateUser: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, email, phone, password } = req.body;
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, name, email, phone, photo')
+        .eq('id', id)
+        .single();
+
+      if (userError) {
+        throw new Error(userError.message);
+      }
+
+      if (!userData) {
+        return commonHelper.response(res, null, 404, 'User not found');
+      }
+
+      const updatedUserData = {};
+      if (name) updatedUserData.name = name;
+      if (email) updatedUserData.email = email;
+      if (phone) updatedUserData.phone = phone;
+      if (password) {
+        const passwordHash = bcrypt.hashSync(password);
+        updatedUserData.password = passwordHash
+      }
+
+      if (req.file) {
+        const imageUrlResponse = await uploadToCloudinary(req.file.path)
+        updatedUserData.photo = imageUrlResponse
+      }
+
+      const { data: updateData, error: updateError } = await supabase
+        .from('users')
+        .update(updatedUserData)
+        .eq('id', id)
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      const updatedUser = { ...updateData, password: undefined };
+      commonHelper.response(res, updatedUser, 200, 'User updated successfully');
+    } catch (error) {
+      console.error('Error updating user:', error);
+      commonHelper.response(res, { message: 'An error occurred while updating the user' }, 500);
     }
   },
   refreshToken: (req, res) => {
