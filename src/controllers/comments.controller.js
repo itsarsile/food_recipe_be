@@ -114,8 +114,6 @@ const commentsController = {
         .select('*')
         .eq('userid', userid)
 
-        console.log(commentData)
-
       if (commentError) {
         throw new Error(commentError.message)
       }
