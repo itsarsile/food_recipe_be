@@ -7,7 +7,7 @@ const DEFAULT_PAGE_SIZE = 10
 
 const recipeSchema = Joi.object({
   title: Joi.string().required(),
-  deatils: Joi.string().required(),
+  details: Joi.string().required(),
   userid: Joi.string().required()
 })
 
