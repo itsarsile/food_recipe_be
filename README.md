@@ -72,7 +72,7 @@ npm install
 5. Create and configure `.env` file in the root directory, example credentials are provided in [.env.example](./.env.example)
 
 ```txt
-- Please note that this server requires Google Drive API credentials and Gmail service account
+- Please note that this server requires Cloudinary API credentials and Gmail service account
 - Otherwise API endpoint with image upload and account register won't work properly
 ```
 
@@ -123,8 +123,6 @@ This backend API is created by 2 backend team members, where each member have di
 - Team leader
 - Relational database design
 - Recipes CRUD
-- Videos CRUD
-- Email verification implementation
 - Liked Recipes CRUD
 - Saved Recipes CRUD
 - Backend deployment
