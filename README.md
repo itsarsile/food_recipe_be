@@ -1,13 +1,13 @@
 <br />
 <p align="center">
   <div align="center">
-    <img height="150" src="./document/picture/logo.png" alt="MamaRecipe" border="0"/>
+    <img height="150" src="https://cdn.discordapp.com/attachments/1103167854657929345/1149392352457269298/removebg-preview.png" alt="MamaRecipe" border="0"/>
   </div>
   <h3 align="center">Mama Recipe (Recipe App)</h3>
   <p align="center">
     <a href="https://github.com/itsarsile/food_recipe_be"><strong>Explore the docs »</strong></a>
     <br />
-    <a href="https://foodrecipekel2.netlify.app/">View Demo</a>
+    <a href="https://food-recipe-kel2.vercel.app/home">View Demo</a>
     ·
     <a href="https://food-recipe-be.onrender.com/recipes">Api Demo</a>
   </p>
@@ -96,15 +96,9 @@ npm run lint
 
 ## Documentation
 
-Documentation files are provided in the [docs](./docs) folder
+API endpoint list are available as published postman documentation
 
-- [Postman API colletion](./docs/Markisak-be.postman_collection.json)
-- [PostgreSQL database query](./docs/markisak-database-query.sql)
-- [Database diagram](./docs/markisak-database-diagram.png)
-
-API endpoint list are also available as published postman documentation
-
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://documenter.getpostman.com/view/26309865/2s93XsYSGG)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://documenter.getpostman.com/view/27920940/2s9YBz3b3R)
 
 ## Related Project
 
@@ -112,7 +106,7 @@ API endpoint list are also available as published postman documentation
 
 :rocket: [`Frontend FoodRecipe`](https://github.com/itsarsile/food_recipe)
 
-:rocket: [`Demo FoodRecipe`](https://foodrecipekel2.netlify.app/)
+:rocket: [`Demo FoodRecipe`](https://food-recipe-kel2.vercel.app/home)
 
 # Contributors
 
@@ -125,6 +119,7 @@ This backend API is created by 2 backend team members, where each member have di
 - Recipes CRUD
 - Liked Recipes CRUD
 - Saved Recipes CRUD
+- Multer implementation
 - Backend deployment
 
 [@AnandaFPP (Ananda Fadhilah Perkasa Putra)](https://github.com/AnandaFPP) :
@@ -132,7 +127,6 @@ This backend API is created by 2 backend team members, where each member have di
 - Users CRUD
 - Authentication
 - Json web token implementation
-- Multer implementation
 - Comments CRUD
 - Postman API documentation
 
@@ -156,7 +150,7 @@ This backend API is created by 2 backend team members, where each member have di
       </td>
       <td align="center">
         <a href="https://github.com/AnandaFPP">
-          <img width="200"  src="./document/picture/nanda.png" alt="Ananda Fadhilah Perkasa Putra"><br/>
+          <img width="200"  src="https://media.licdn.com/dms/image/D5603AQGWgsVWPdxN3A/profile-displayphoto-shrink_800_800/0/1687844221244?e=1699488000&v=beta&t=YA_l5btWWSZYCAYe1dwoVchxbmZAWHtJfXYKTrvnNoA" alt="Ananda Fadhilah Perkasa Putra"><br/>
           <b>Ananda Fadhilah Perkasa Putra</b>
         </a>
       </td>
